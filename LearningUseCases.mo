@@ -914,6 +914,58 @@ package LearningUseCases
       experiment(StopTime = 2000, Interval = 0.4, Tolerance = 1e-006),
       Diagram);
   end PumpingSystem_co2;
+
+  package NitrogenCoolPropMedia
+    import ExternalMedia.Media.CoolPropMedium.CoolPropN2;
+    extends Modelica.Media.Interfaces.PartialPureSubstance(
+      mediumName = "Nitrogen (CoolProp)", 
+      substanceNames = {"Nitrogen"}, 
+      singleState=false, 
+      reducedX=true, 
+      fixedX=true, 
+      reference_X = fill(1, 1));
+  
+    // Record for Thermodynamic State
+    redeclare record ThermodynamicState 
+      SI.Pressure p "Pressure";
+      SI.Temperature T "Temperature";
+    end ThermodynamicState;
+  
+    // Use CoolProp functions for thermodynamic properties
+    redeclare function setState_pT 
+      input SI.Pressure p;
+      input SI.Temperature T;
+      output ThermodynamicState state;
+    algorithm
+      state.p := p;
+      state.T := T;
+    end setState_pT;
+  
+    // Density function using CoolProp
+    redeclare function density 
+      input ThermodynamicState state;
+      output SI.Density d;
+    algorithm
+      d := state.rho(CoolPropN2.setState_pT(state.p, state.T));  // CoolProp call for density
+    end density;
+  
+    // Specific Enthalpy function using CoolProp
+    redeclare function specificEnthalpy 
+      input ThermodynamicState state;
+      output SI.SpecificEnthalpy h;
+    algorithm
+      h := CoolPropN2.specificEnthalpy(CoolPropN2.setState_pT(state.p, state.T));  // CoolProp call for enthalpy
+    end specificEnthalpy;
+  
+    // Specific Entropy function using CoolProp
+    redeclare function specificEntropy 
+      input ThermodynamicState state;
+      output SI.SpecificEntropy s;
+    algorithm
+      s := CoolPropN2.specificEntropy(CoolPropN2.setState_pT(state.p, state.T));  // CoolProp call for entropy
+    end specificEntropy;
+  
+  end NitrogenCoolPropMedia;
   annotation(
     uses(Modelica(version = "4.0.0")));
 end LearningUseCases;
